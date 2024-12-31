@@ -63,7 +63,7 @@ def RunOVF(OVF_EXE_PATH : str = None,
   command_line_arguments.extend(['-o', PLAINTEXT_OUTPUT_PATH])
   command_line_arguments.extend(['-g', GRAPHIC_OUTPUT_PATH])
 
-  completed_process = subprocess.run(command_line_arguments, stdout = subprocess.PIPE, text = True)
+  completed_process = subprocess.run(command_line_arguments, capture_output = True, text = True)
 
   return completed_process
 
