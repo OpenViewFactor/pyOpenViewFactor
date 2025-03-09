@@ -1,33 +1,42 @@
 import subprocess
 
 #! ---------- GLOBAL FUNCTION FOR EXECUTING THE OVF SOLVER ---------- !#
-def RunOVF(OVF_EXE_PATH : str = None,
-           HELP_TOGGLE : bool = False,
-           INPUT_MESHES : str = None,
-           BLOCKING_MESHES : str = None,
-           INTERSECTION_OPTION : str = 'NONE',
-           NUMERICAL_METHOD : str = 'DAI',
-           COMPUTE_OPTION : str = 'CPU_N',
-           PRECISION : str = 'DOUBLE',
-           PLAINTEXT_OUTPUT_PATH : str = 'NONE',
-           GRAPHIC_OUTPUT_PATH : str = 'NONE'):
+def RunOVF(HELP = False,
+           OVF_EXE_PATH = None,
+           inputs = None,
+           obstructions = None,
+           selfint = None,
+           numerics = None,
+           compute = None,
+           precision = None,
+           backfacecull = None,
+           blockingtype = None,
+           matrixout = "NONE",
+           graphicout = "NONE",
+           bvhout = "NONE",
+           logfile = "NONE"):
   
   command_line_arguments = [
     OVF_EXE_PATH
   ]
 
-  if HELP_TOGGLE:
+  if HELP:
     print('<-----> Python Interface Options <----->')
+    print('HELP\t\t\t<--> (= False/True) Prints out this help window.')
     print('OVF_EXE_PATH\t\t<--> Pass the absolute / relative filepath of the openviewfactor binary as a string.')
-    print('HELP_TOGGLE\t\t<--> (= False/True) Prints out this help window.')
-    print('INPUT_MESHES\t\t<--> Pass the absolute / relative filepath(s) for 1 or 2 input meshes in the .stl format. Use a list of strings for 2.')
-    print('BLOCKING_MESHES\t\t<--> Pass the absolute / relative filepath(s) for any obstructive meshes in the .stl format. Use a list of strings for more than one.')
-    print('INTERSECTION_OPTION\t<--> (= "NONE"/"BOTH"/"EMITTER"/"RECEIVER") Determines which of the input meshes should be treated as potential obstructive meshes.')
-    print('NUMERICAL_METHOD\t<--> (= "DAI") Determines the numerical integration scheme used.')
-    print('COMPUTE_OPTION\t\t<--> (= "CPU_N"/"CPU"/"GPU"/"GPU_N") Determines the compute back-end.')
-    print('PRECISION\t\t<--> (= "DOUBLE"/"SINGLE") Determines the floating-point precision.')
-    print('PLAINTEXT_OUTPUT_PATH\t<--> (= "NONE") Pass the absolute / relative filepath to write the sparse output matrix.')
-    print('GRAPHIC_OUTPUT_PATH\t<--> (= "NONE") Pass the absolute / relative filepath to write the graphic file. Use a list of strings to separate each mesh into unique visualizations.')
+    print('inputs\t\t<--> Pass the absolute / relative filepath(s) for 1 or 2 input meshes in the .stl format. Use a list of strings for 2.')
+    print('obstructions\t\t<--> Pass the absolute / relative filepath(s) for any obstructive meshes in the .stl format. Use a list of strings for more than one.')
+    print('blockingtype\t\t<--> (= "BVH"/"NAIVE") Determines whether to apply blocking using naive moller-trumbore intersection or to utilize the Boundary Volume Hierarchy.')
+    print('selfint\t<--> (= "NONE"/"BOTH"/"EMITTER"/"RECEIVER") Determines which of the input meshes should be treated as potential obstructive meshes.')
+    print('backfacecull\t<--> (= "ON"/"OFF") Determines whether the back-face culling algorithm will be applied to the two input meshes.')
+    print('numerics\t<--> (= "DAI"/"SAI") Determines the numerical integration scheme used.')
+    print('compute\t\t<--> (= "CPU_N"/"GPU"/"GPU_N") Determines the compute back-end.')
+    print('precision\t\t<--> (= "DOUBLE"/"SINGLE") Determines the floating-point precision.')
+    print('matrixout\t<--> (= "NONE") Pass the absolute / relative filepath to write the sparse output matrix.')
+    print('graphicout\t<--> (= "NONE") Pass the absolute / relative filepath to write the graphic file. Use a list of strings to separate each mesh into unique visualizations.')
+    print('bvhout\t<--> (= "NONE") Pass the absolute / relative file path to write the Boundary Volume Hierarchy for the blocking structure.')
+    print('logfile\t<--> (= "NONE") Pass the absolute / relative file path to write the solver command-line output to a log file.')
+
     if not(OVF_EXE_PATH == None):
       command_line_arguments.extend(['-h'])
       print('<-----> Core OpenViewFactor CLI <----->')
@@ -35,37 +44,39 @@ def RunOVF(OVF_EXE_PATH : str = None,
       return completed_process
     return
 
-  if INPUT_MESHES == None:
+  if inputs == None:
     print('You must provide at least one input mesh.')
     print('For a reminder on the core command-line interface, pass "HELP_TOGGLE = True" to this function')
     return
 
   #* ----- LOAD INPUT MESHES ----- *#
   command_line_arguments.extend(['-i'])
-  if not(isinstance(INPUT_MESHES, list)):
-    command_line_arguments.extend([INPUT_MESHES])
+  if not(isinstance(inputs, list)):
+    command_line_arguments.extend([inputs])
   else:
-    command_line_arguments.extend([mesh for mesh in INPUT_MESHES])
+    command_line_arguments.extend([mesh for mesh in inputs])
 
   #* ----- LOAD BLOCKING MESHES ----- *#
-  if not(BLOCKING_MESHES == None):
-    command_line_arguments.extend(['-b'])
-    if not(isinstance(BLOCKING_MESHES,list)):
-      command_line_arguments.extend([BLOCKING_MESHES])
+  if not(obstructions == None):
+    command_line_arguments.extend(['-o'])
+    if not(isinstance(obstructions,list)):
+      command_line_arguments.extend([obstructions])
     else:
-      command_line_arguments.extend([mesh for mesh in BLOCKING_MESHES])
+      command_line_arguments.extend([mesh for mesh in obstructions])
 
   #* ----- LOAD OTHER OPTIONS ----- *#
-  command_line_arguments.extend(['-s', INTERSECTION_OPTION])
-  command_line_arguments.extend(['-n', NUMERICAL_METHOD])
-  command_line_arguments.extend(['-c', COMPUTE_OPTION])
-  command_line_arguments.extend(['-p', PRECISION])
-  command_line_arguments.extend(['-o', PLAINTEXT_OUTPUT_PATH])
-  command_line_arguments.extend(['-g', GRAPHIC_OUTPUT_PATH])
+  command_line_arguments.extend(['-s', selfint])
+  command_line_arguments.extend(['-n', numerics])
+  command_line_arguments.extend(['-c', compute])
+  command_line_arguments.extend(['-p', precision])
+  command_line_arguments.extend(['-m', matrixout])
+  command_line_arguments.extend(['-g', graphicout])
+  command_line_arguments.extend(['-b', bvhout])
+  command_line_arguments.extend(['-f', backfacecull])
+  command_line_arguments.extend(['-t', blockingtype])
+  command_line_arguments.extend(['-l', logfile])
 
-  completed_process = subprocess.run(command_line_arguments, capture_output = True, text = True)
-
-  return completed_process
+  subprocess.run(command_line_arguments)
 
 if __name__ == "__main__":
-  RunOVF(HELP_TOGGLE=True)
+  RunOVF(HELP=True)
